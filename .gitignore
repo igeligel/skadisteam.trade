@@ -245,4 +245,8 @@ ModelManifest.xml
 .fake/
 
 skadisteam.trade.console.sln
+src/skadisteam.trade.console
+src/skadisteam.trade.console/
+
+src/skadisteam.trade.console/*
 
