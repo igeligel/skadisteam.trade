@@ -6,6 +6,8 @@ using skadisteam.trade.Models;
 using System.Net;
 using System.Net.Http;
 using AngleSharp.Parser.Html;
+using skadisteam.trade.Extensions;
+using skadisteam.trade.Factories;
 
 namespace skadisteam.trade
 {
@@ -16,6 +18,7 @@ namespace skadisteam.trade
         public SkadiTradeClient(SkadiLoginResponse skadiLoginResponse)
         {
             _skadiLoginResponse = skadiLoginResponse;
+            _skadiLoginResponse.SkadiLoginCookies.AddWebTradeEligilityCookie();
         }
 
         public List<BasicTradeOffer> GetBasicTradeOffers()
@@ -25,18 +28,16 @@ namespace skadisteam.trade
             var myTradeOffersPath = "/profiles/" +
                                 _skadiLoginResponse.SteamCommunityId +
                                 "/tradeoffers/";
-            var cookieContainer = _skadiLoginResponse.SkadiLoginCookies;
-            var handler =  new HttpClientHandler
-            {
-                CookieContainer = cookieContainer,
-                AutomaticDecompression = DecompressionMethods.GZip |
-                                         DecompressionMethods.Deflate
-            };
+            var handler =
+                HttpClientHandlerFactory.CreateWithCookieContainer(
+                    _skadiLoginResponse.SkadiLoginCookies);
 
+            
             HttpResponseMessage response;
             
             using (var client = new HttpClient(handler))
             {
+                client.BaseAddress = new Uri("http://steamcommunity.com");
                 client.DefaultRequestHeaders.TryAddWithoutValidation("Cache-Control", "no-cache");
                 client.DefaultRequestHeaders.TryAddWithoutValidation("Pragma", "no-cache");
                 client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
@@ -51,7 +52,8 @@ namespace skadisteam.trade
             var content = response.Content.ReadAsStringAsync().Result;
             var parser = new HtmlParser();
             var document = parser.Parse(content);
-            var tradeOffers = document.All.Where(e => e.ClassName == "tradeoffer");
+            var tradeOffers = document.QuerySelectorAll("div.tradeoffer");
+            
             foreach (var tradeOffer in tradeOffers)
             {
                 BasicTradeOffer basicTradeOffer = new BasicTradeOffer();
@@ -62,15 +64,15 @@ namespace skadisteam.trade
                 basicTradeOffer.Id = int.Parse(tradeOffer.Id.Replace("tradeofferid_", ""));
                 var activeClassName =
                     tradeOffer.Children.FirstOrDefault(
-                        e => e.ClassName.Contains("tradeoffer_items_ctn"))
+                        e => e.ClassList.Contains("tradeoffer_items_ctn"))
                         .ClassName;
                 if (activeClassName.Contains("inactive"))
                 {
-                    basicTradeOffer.Active = true;
+                    basicTradeOffer.Active = false;
                 }
                 else if (activeClassName.Contains("active"))
                 {
-                    basicTradeOffer.Active = false;
+                    basicTradeOffer.Active = true;
                 }
                 basicTradeOffers.Add(basicTradeOffer);
             }
