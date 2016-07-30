@@ -6,6 +6,7 @@ using skadisteam.trade.Models;
 using System.Net;
 using System.Net.Http;
 using AngleSharp.Parser.Html;
+using skadisteam.trade.Constants;
 using skadisteam.trade.Extensions;
 using skadisteam.trade.Factories;
 
@@ -32,23 +33,9 @@ namespace skadisteam.trade
                 HttpClientHandlerFactory.CreateWithCookieContainer(
                     _skadiLoginResponse.SkadiLoginCookies);
 
-            
-            HttpResponseMessage response;
-            
-            using (var client = new HttpClient(handler))
-            {
-                client.BaseAddress = new Uri("http://steamcommunity.com");
-                client.DefaultRequestHeaders.TryAddWithoutValidation("Cache-Control", "no-cache");
-                client.DefaultRequestHeaders.TryAddWithoutValidation("Pragma", "no-cache");
-                client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-                client.DefaultRequestHeaders.TryAddWithoutValidation("Accept-Encoding", "gzip, deflate, sdch");
-                client.DefaultRequestHeaders.TryAddWithoutValidation("Accept-Language", "en-US;q=0.6,en;q=0.4,it;q=0.2");
-                client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36");
-                client.DefaultRequestHeaders.TryAddWithoutValidation("Referer", "http://steamcommunity.com/profiles/" + _skadiLoginResponse.SteamCommunityId + "/home");
-                client.DefaultRequestHeaders.TryAddWithoutValidation("Upgrade-Insecure-Requests", "1");
-                client.DefaultRequestHeaders.Host = new Uri("http://steamcommunity.com").Host;
-                response = client.GetAsync(myTradeOffersPath).Result;
-            }
+            var response = RequestFactory.GetTradeOfferResponseMessage(handler,
+                myTradeOffersPath, _skadiLoginResponse.SteamCommunityId);
+
             var content = response.Content.ReadAsStringAsync().Result;
             var parser = new HtmlParser();
             var document = parser.Parse(content);
@@ -56,10 +43,31 @@ namespace skadisteam.trade
             
             foreach (var tradeOffer in tradeOffers)
             {
+                var tradeOfferItems =
+                    tradeOffer.QuerySelectorAll(".tradeoffer_item_list");
+                var profileItems = tradeOfferItems.FirstOrDefault();
+                var partnerItems = tradeOfferItems.LastOrDefault();
+
+                var partnerItemInstances =
+                    partnerItems.QuerySelectorAll(".trade_item");
+                foreach (var partnerItemInstance in partnerItemInstances)
+                {
+                    BasicTradeOfferItem basicTradeOfferItem =
+                        new BasicTradeOfferItem();
+
+                    var dataEconomyItem =
+                        partnerItemInstance.Attributes.FirstOrDefault(
+                            e => e.Name == "data-economy-item").Value;
+                    basicTradeOfferItem.ItemPicture =
+                        partnerItemInstance.Children.FirstOrDefault(
+                            e => e.TagName == "IMG")
+                            .Attributes.FirstOrDefault(e => e.Name == "src")
+                            .Value;
+                }
+
                 BasicTradeOffer basicTradeOffer = new BasicTradeOffer();
                 basicTradeOffer.PartnerItems = new List<BasicTradeOfferItem>();
                 basicTradeOffer.ProfileItems = new List<BasicTradeOfferItem>();
-
                 
                 basicTradeOffer.Id = int.Parse(tradeOffer.Id.Replace("tradeofferid_", ""));
                 var activeClassName =
