@@ -12,16 +12,29 @@ namespace skadisteam.trade.Factories
             HttpResponseMessage response;
             using (var client = new HttpClient(httpClientHandler))
             {
-                client.BaseAddress = new Uri("http://steamcommunity.com");
-                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.CacheControl, HttpHeaderValues.NoCache);
-                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.Pragma, HttpHeaderValues.NoCache);
-                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.Accept, HttpHeaderValues.AcceptHtmlImagesAndXml);
-                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.AcceptEncoding, HttpHeaderValues.GzipDeflateOrSdch);
-                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.AcceptLanguage, HttpHeaderValues.AcceptLanguageEnglish);
-                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.UserAgent, HttpHeaderValues.ChromeUserAgent);
-                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.Referer, "http://steamcommunity.com/profiles/" + steamCommunityId + "/home");
-                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.UpgradeInsecureRequest, "1");
-                client.DefaultRequestHeaders.Host = new Uri("http://steamcommunity.com").Host;
+                client.BaseAddress = Uris.SteamCommunityBase;
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.CacheControl, HttpHeaderValues.NoCache);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.Pragma, HttpHeaderValues.NoCache);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.Accept,
+                    HttpHeaderValues.AcceptHtmlImagesAndXml);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.AcceptEncoding,
+                    HttpHeaderValues.GzipDeflateOrSdch);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.AcceptLanguage,
+                    HttpHeaderValues.AcceptLanguageEnglish);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.UserAgent, HttpHeaderValues.ChromeUserAgent);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.Referer,
+                    Urls.SteamCommunityBase + "/profiles/" + steamCommunityId +
+                    "/home");
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.UpgradeInsecureRequest, "1");
+                client.DefaultRequestHeaders.Host = Uris.SteamCommunityBase.Host;
                 response = client.GetAsync(path).Result;
             }
             return response;
