@@ -4,5 +4,6 @@ namespace skadisteam.trade.Constants
     {
         internal const string PlayerAvatarClass = "." + HtmlClasses.PlayerAvatar;
         internal const string TradeofferHeader = ".tradeoffer_header";
+        internal const string TradeOfferItemList = ".tradeoffer_item_list";
     }
 }
