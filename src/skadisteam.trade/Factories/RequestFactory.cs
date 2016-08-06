@@ -6,7 +6,7 @@ namespace skadisteam.trade.Factories
 {
     internal static class RequestFactory
     {
-        internal static HttpResponseMessage GetTradeOfferResponseMessage(
+        internal static HttpResponseMessage GetTradeOffersListResponseMessage(
             HttpClientHandler httpClientHandler, string path, long steamCommunityId)
         {
             HttpResponseMessage response;

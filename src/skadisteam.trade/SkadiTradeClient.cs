@@ -32,8 +32,9 @@ namespace skadisteam.trade
                 HttpClientHandlerFactory.CreateWithCookieContainer(
                     _skadiLoginResponse.SkadiLoginCookies);
 
-            var response = RequestFactory.GetTradeOfferResponseMessage(handler,
-                myTradeOffersPath, _skadiLoginResponse.SteamCommunityId);
+            var response =
+                RequestFactory.GetTradeOffersListResponseMessage(handler,
+                    myTradeOffersPath, _skadiLoginResponse.SteamCommunityId);
 
             var valid = ResponseValidator.GetTradeOffersResponse(response);
 
@@ -43,7 +44,6 @@ namespace skadisteam.trade
             var tradeOffers = document.QuerySelectorAll("div.tradeoffer");
 
             return tradeOffers.Select(BasicTradeOfferFactory.Create).ToList();
-
         }
     }
 }
