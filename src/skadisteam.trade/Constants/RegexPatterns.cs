@@ -5,7 +5,9 @@ namespace skadisteam.trade.Constants
         internal const string ClassInfo = "classinfo";
         internal const string CommunityId = "javascript\\SReportTradeScam\\S '";
         internal const string NewLine = "\n";
+        internal const string OfferExpireson = "Offer expires on ";
         internal const string SingleQuote = "'";
         internal const string Tab = "\t";
+        internal const string TradeOfferIdUnderscore = "tradeofferid_";
     }
 }
