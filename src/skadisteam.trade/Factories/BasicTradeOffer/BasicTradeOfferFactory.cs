@@ -9,11 +9,11 @@ namespace skadisteam.trade.Factories.BasicTradeOffer
 {
     internal static class BasicTradeOfferFactory
     {
-        internal static Models.BasicTradeOffer Create(IElement angleSharpElement)
+        internal static Models.BasicTradeOffer.BasicTradeOffer Create(IElement angleSharpElement)
         {
             var tradeOfferItems =
                 angleSharpElement.QuerySelectorAll(HtmlQuerySelectors.TradeOfferItemList);
-            var basicTradeOffer = new Models.BasicTradeOffer
+            var basicTradeOffer = new Models.BasicTradeOffer.BasicTradeOffer
             {
                 Partner =
                     BasicTradeOfferPartnerFactory.Create(angleSharpElement),
