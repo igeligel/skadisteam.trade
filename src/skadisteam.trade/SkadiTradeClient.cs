@@ -8,6 +8,9 @@ using AngleSharp.Parser.Html;
 using skadisteam.trade.Extensions;
 using skadisteam.trade.Factories;
 using skadisteam.trade.Factories.BasicTradeOffer;
+using skadisteam.trade.Factories.TradeOffer;
+using skadisteam.trade.Models.BasicTradeOffer;
+using skadisteam.trade.Models.TradeOffer;
 using skadisteam.trade.Validator;
 
 namespace skadisteam.trade
@@ -44,6 +47,17 @@ namespace skadisteam.trade
             var tradeOffers = document.QuerySelectorAll("div.tradeoffer");
 
             return tradeOffers.Select(BasicTradeOfferFactory.Create).ToList();
+        }
+        
+        public SkadiTradeOffer LoadTradeOffer(int id, long communityId)
+        {
+            var handler =
+                HttpClientHandlerFactory.CreateWithCookieContainer(
+                    _skadiLoginResponse.SkadiLoginCookies);
+            var response = RequestFactory.GetTradeOfferResponseMessage(handler,
+                "/tradeoffer/"+ id + "/", communityId);
+            var content = response.Content.ReadAsStringAsync().Result;
+            return TradeOfferFactory.Create(content);
         }
     }
 }
