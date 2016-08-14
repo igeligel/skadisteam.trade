@@ -1,6 +1,7 @@
 using System.Linq;
 using AngleSharp.Dom;
 using skadisteam.trade.Models;
+using skadisteam.trade.Models.BasicTradeOffer;
 
 namespace skadisteam.trade.Factories.BasicTradeOffer
 {
