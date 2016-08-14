@@ -3,6 +3,7 @@ using skadisteam.trade.Models;
 using System.Linq;
 using skadisteam.trade.Constants;
 using skadisteam.trade.Extensions;
+using skadisteam.trade.Models.BasicTradeOffer;
 using Regex = System.Text.RegularExpressions.Regex;
 
 namespace skadisteam.trade.Factories.BasicTradeOffer
