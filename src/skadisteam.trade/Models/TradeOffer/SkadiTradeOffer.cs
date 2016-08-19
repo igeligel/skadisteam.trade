@@ -2,6 +2,7 @@ namespace skadisteam.trade.Models.TradeOffer
 {
     public class SkadiTradeOffer
     {
+        public int Id { get; set; }
         public SkadiTradeOfferProfile MyProfile { get; set; }
         
         public SkadiTradeOfferPartner Partner { get; set; }
