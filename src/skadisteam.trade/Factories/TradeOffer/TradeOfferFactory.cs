@@ -17,14 +17,14 @@ namespace skadisteam.trade.Factories.TradeOffer
 {
     internal static class TradeOfferFactory
     {
-        internal static SkadiTradeOffer Create(string content)
+        internal static SkadiTradeOffer Create(string content, int id)
         {
             var document = new HtmlParser().Parse(content);
             var completeScript = GetScript(document);
 
-
             var skadiTradeOffer = new SkadiTradeOffer
             {
+                Id = id,
                 MyProfile = new SkadiTradeOfferProfile
                 {
                     MarketAllowed = GetMarketAllowed(completeScript),
