@@ -1,6 +1,7 @@
 using System;
 using System.Net.Http;
 using skadisteam.trade.Constants;
+using skadisteam.trade.Extensions;
 
 namespace skadisteam.trade.Factories
 {
@@ -43,8 +44,6 @@ namespace skadisteam.trade.Factories
         internal static HttpResponseMessage GetTradeOfferResponseMessage(
             HttpClientHandler httpClientHandler, string path, long steamCommunityId)
         {
-            // https://steamcommunity.com
-
             HttpResponseMessage response;
             using (var client = new HttpClient(httpClientHandler))
             {
@@ -59,6 +58,53 @@ namespace skadisteam.trade.Factories
                     new Uri("https://steamcommunity.com").Host;
                 response = client.GetAsync(path).Result;
             }
+            return response;
+        }
+
+        internal static HttpResponseMessage GetConfirmationData(HttpClientHandler httpClientHandler, string path, long steamCommunityId)
+        {
+            httpClientHandler.CookieContainer.EnableMobileCookieContainer(
+                steamCommunityId);
+            HttpResponseMessage httpResponseMessage;
+            using (var client = new HttpClient(httpClientHandler))
+            {
+                client.BaseAddress = new Uri("https://steamcommunity.com");
+                client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.AcceptEncoding, HttpHeaderValues.GzipDeflateOrSdch);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.AcceptLanguage, "de-DE,en-US;q=0.8");
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    "User-Agent", "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 4 Build/LMY48T; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/46.0.2490.76 Mobile Safari/537.36");
+                client.DefaultRequestHeaders.TryAddWithoutValidation("X-Requested-With", "com.valvesoftware.android.steam.community");
+                client.DefaultRequestHeaders.TryAddWithoutValidation("Upgrade-Insecure-Requests", "1");
+                client.DefaultRequestHeaders.Host = "steamcommunity.com";
+                httpResponseMessage = client.GetAsync(path).Result;
+            }
+            httpClientHandler.CookieContainer.DisableMobileCookieContainer();
+            return httpResponseMessage;
+        }
+
+        internal static HttpResponseMessage ApproveConfirmations(HttpClientHandler httpClientHandler, string path, string referer, long steamCommunityId)
+        {
+            httpClientHandler.CookieContainer.EnableMobileCookieContainer(
+                steamCommunityId);
+            HttpResponseMessage response;
+            using (var client = new HttpClient(httpClientHandler))
+            {
+                client.BaseAddress = new Uri("https://steamcommunity.com");
+                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.Accept, "*/*");
+                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.AcceptEncoding, HttpHeaderValues.GzipDeflateOrSdch);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.AcceptLanguage, "de-DE,en-US;q=0.8");
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.UserAgent,
+                    "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 4 Build/LMY48T; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/46.0.2490.76 Mobile Safari/537.36");
+                client.DefaultRequestHeaders.TryAddWithoutValidation("X-Requested-With", "XMLHttpRequest");
+                client.DefaultRequestHeaders.TryAddWithoutValidation("Referer",
+                    referer);
+                client.DefaultRequestHeaders.Host = "steamcommunity.com";
+                response = client.GetAsync(path).Result;
+            }
+            httpClientHandler.CookieContainer.DisableMobileCookieContainer();
             return response;
         }
     }
