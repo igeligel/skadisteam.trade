@@ -1,14 +1,18 @@
-using System;
+using System.Collections.Generic;
 using System.Net.Http;
+using Newtonsoft.Json;
 using skadisteam.trade.Constants;
 using skadisteam.trade.Extensions;
+using skadisteam.trade.Models.Json.CreatingOffers;
+using skadisteam.trade.Models.TradeOffer;
 
 namespace skadisteam.trade.Factories
 {
     internal static class RequestFactory
     {
         internal static HttpResponseMessage GetTradeOffersListResponseMessage(
-            HttpClientHandler httpClientHandler, string path, long steamCommunityId)
+            HttpClientHandler httpClientHandler, string path,
+            long steamCommunityId)
         {
             HttpResponseMessage response;
             using (var client = new HttpClient(httpClientHandler))
@@ -31,10 +35,9 @@ namespace skadisteam.trade.Factories
                     HttpHeaderKeys.UserAgent, HttpHeaderValues.ChromeUserAgent);
                 client.DefaultRequestHeaders.TryAddWithoutValidation(
                     HttpHeaderKeys.Referer,
-                    Urls.SteamCommunityBase + "/profiles/" + steamCommunityId +
-                    "/home");
+                    UrlFactory.SteamCommunityHome(steamCommunityId));
                 client.DefaultRequestHeaders.TryAddWithoutValidation(
-                    HttpHeaderKeys.UpgradeInsecureRequest, "1");
+                    HttpHeaderKeys.UpgradeInsecureRequest, HttpHeaderValues.One);
                 client.DefaultRequestHeaders.Host = Uris.SteamCommunityBase.Host;
                 response = client.GetAsync(path).Result;
             }
@@ -42,20 +45,31 @@ namespace skadisteam.trade.Factories
         }
 
         internal static HttpResponseMessage GetTradeOfferResponseMessage(
-            HttpClientHandler httpClientHandler, string path, long steamCommunityId)
+            HttpClientHandler httpClientHandler, string path,
+            long steamCommunityId)
         {
             HttpResponseMessage response;
             using (var client = new HttpClient(httpClientHandler))
             {
-                client.BaseAddress = new Uri("https://steamcommunity.com");
-                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.Accept, "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.AcceptEncoding, "gzip, deflate, sdch, br");
-                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.AcceptEncoding, "de-DE,de;q=0.8,en-US;q=0.6,en;q=0.4,it;q=0.2");
-                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.UserAgent, "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36");
-                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.Referer, "http://steamcommunity.com/profiles/" + steamCommunityId + "/tradeoffers/");
-                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.UpgradeInsecureRequest, "1");
+                client.BaseAddress = Uris.SteamCommunityBaseSecured;
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.Accept,
+                    HttpHeaderValues.AcceptHtmlImagesAndXml);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.AcceptEncoding,
+                    HttpHeaderValues.GzipDeflateSdchOrBr);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.AcceptEncoding,
+                    HttpHeaderValues.AcceptLanguageEnglish);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.UserAgent, HttpHeaderValues.ChromeUserAgent);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.Referer,
+                    UrlFactory.TradeOfferPage(steamCommunityId));
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.UpgradeInsecureRequest, HttpHeaderValues.One);
                 client.DefaultRequestHeaders.Host =
-                    new Uri("https://steamcommunity.com").Host;
+                    Uris.SteamCommunityBaseSecured.Host;
                 response = client.GetAsync(path).Result;
             }
             return response;
@@ -68,43 +82,174 @@ namespace skadisteam.trade.Factories
             HttpResponseMessage httpResponseMessage;
             using (var client = new HttpClient(httpClientHandler))
             {
-                client.BaseAddress = new Uri("https://steamcommunity.com");
-                client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.AcceptEncoding, HttpHeaderValues.GzipDeflateOrSdch);
+                client.BaseAddress = Uris.SteamCommunityBaseSecured;
                 client.DefaultRequestHeaders.TryAddWithoutValidation(
-                    HttpHeaderKeys.AcceptLanguage, "de-DE,en-US;q=0.8");
+                    HttpHeaderKeys.Accept,
+                    HttpHeaderValues.AcceptHtmlImagesAndXml);
                 client.DefaultRequestHeaders.TryAddWithoutValidation(
-                    "User-Agent", "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 4 Build/LMY48T; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/46.0.2490.76 Mobile Safari/537.36");
-                client.DefaultRequestHeaders.TryAddWithoutValidation("X-Requested-With", "com.valvesoftware.android.steam.community");
-                client.DefaultRequestHeaders.TryAddWithoutValidation("Upgrade-Insecure-Requests", "1");
-                client.DefaultRequestHeaders.Host = "steamcommunity.com";
+                    HttpHeaderKeys.AcceptEncoding,
+                    HttpHeaderValues.GzipDeflateOrSdch);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.AcceptLanguage,
+                    HttpHeaderValues.AcceptLanguageGermanEnglish);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.UserAgent, HttpHeaderValues.MobileUserAgent);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.XrequestedWith,
+                    HttpHeaderValues.RequestedWithAndroidApp);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.UpgradeInsecureRequest, HttpHeaderValues.One);
+                client.DefaultRequestHeaders.Host =
+                    Uris.SteamCommunityBaseSecured.Host;
                 httpResponseMessage = client.GetAsync(path).Result;
             }
             httpClientHandler.CookieContainer.DisableMobileCookieContainer();
             return httpResponseMessage;
         }
 
-        internal static HttpResponseMessage ApproveConfirmations(HttpClientHandler httpClientHandler, string path, string referer, long steamCommunityId)
+        internal static void ApproveConfirmations(HttpClientHandler httpClientHandler, string path, string referer, long steamCommunityId)
         {
             httpClientHandler.CookieContainer.EnableMobileCookieContainer(
                 steamCommunityId);
+            using (var client = new HttpClient(httpClientHandler))
+            {
+                client.BaseAddress = Uris.SteamCommunityBaseSecured;
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.Accept, HttpHeaderValues.AcceptAll);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.AcceptEncoding,
+                    HttpHeaderValues.GzipDeflateOrSdch);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.AcceptLanguage,
+                    HttpHeaderValues.AcceptLanguageGermanEnglish);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.UserAgent,
+                    HttpHeaderValues.MobileUserAgent);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.XrequestedWith,
+                    HttpHeaderValues.RequestedWithXmlHttpRequest);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.Referer,
+                    referer);
+                client.DefaultRequestHeaders.Host =
+                    Uris.SteamCommunityBaseSecured.Host;
+                client.GetAsync(path).Wait();
+            }
+            httpClientHandler.CookieContainer.DisableMobileCookieContainer();
+        }
+
+        internal static void DeclineOffer(HttpClientHandler httpClientHandler, SkadiTradeOffer skadiTradeOffer, string path)
+        {
+            using (var client = new HttpClient(httpClientHandler))
+            {
+                var content = new FormUrlEncodedContent(new[]
+                {
+                    new KeyValuePair<string, string>("sessionid",
+                        skadiTradeOffer.SessionId)
+                });
+                client.BaseAddress = Uris.SteamCommunityBaseSecured;
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.Accept,
+                    HttpHeaderValues.AcceptAll);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.AcceptEncoding,
+                    HttpHeaderValues.GzipDeflateOrBr);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.AcceptLanguage,
+                    HttpHeaderValues.AcceptLanguageEnglish);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.UserAgent,
+                    HttpHeaderValues.ChromeUserAgent);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.Referer,
+                    UrlFactory.TradeOffer(skadiTradeOffer.Id));
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.Origin,
+                    Urls.SteamCommunityBaseSecured);
+                client.DefaultRequestHeaders.Host =
+                    Uris.SteamCommunityBaseSecured.Host;
+                client.PostAsync(path, content).Wait();
+            }
+        }
+
+        internal static HttpResponseMessage AcceptOffer(HttpClientHandler httpClientHandler, SkadiTradeOffer skadiTradeOffer, string path)
+        {
             HttpResponseMessage response;
             using (var client = new HttpClient(httpClientHandler))
             {
-                client.BaseAddress = new Uri("https://steamcommunity.com");
-                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.Accept, "*/*");
-                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.AcceptEncoding, HttpHeaderValues.GzipDeflateOrSdch);
-                client.DefaultRequestHeaders.TryAddWithoutValidation(HttpHeaderKeys.AcceptLanguage, "de-DE,en-US;q=0.8");
+                var content = new FormUrlEncodedContent(new[]
+                {
+                    new KeyValuePair<string, string>("sessionid",
+                        skadiTradeOffer.SessionId),
+                    new KeyValuePair<string, string>("serverid", "1"),
+                    new KeyValuePair<string, string>("tradeofferid",
+                        skadiTradeOffer.Id.ToString()),
+                    new KeyValuePair<string, string>("partner",
+                        skadiTradeOffer.Partner.PartnerCommunityId.ToString()),
+                    new KeyValuePair<string, string>("captcha", "")
+                });
+                client.BaseAddress = Uris.SteamCommunityBaseSecured;
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.Accept, HttpHeaderValues.AcceptAll);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.AcceptEncoding,
+                    HttpHeaderValues.GzipDeflateOrBr);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.AcceptLanguage,
+                    HttpHeaderValues.AcceptLanguageEnglish);
                 client.DefaultRequestHeaders.TryAddWithoutValidation(
                     HttpHeaderKeys.UserAgent,
-                    "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 4 Build/LMY48T; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/46.0.2490.76 Mobile Safari/537.36");
-                client.DefaultRequestHeaders.TryAddWithoutValidation("X-Requested-With", "XMLHttpRequest");
-                client.DefaultRequestHeaders.TryAddWithoutValidation("Referer",
-                    referer);
-                client.DefaultRequestHeaders.Host = "steamcommunity.com";
-                response = client.GetAsync(path).Result;
+                    HttpHeaderValues.ChromeUserAgent);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.Referer,
+                    UrlFactory.TradeOffer(skadiTradeOffer.Id));
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.Origin,
+                    Urls.SteamCommunityBaseSecured);
+                client.DefaultRequestHeaders.Host =
+                    Uris.SteamCommunityBaseSecured.Host;
+                response = client.PostAsync(path, content).Result;
             }
-            httpClientHandler.CookieContainer.DisableMobileCookieContainer();
+            return response;
+        }
+
+        internal static HttpResponseMessage CreateTradeOffer(HttpClientHandler httpClientHandler, CreateOffer createOffer, long partnerCommunityId, string sessionId, TradeOfferCreateParameter tradeOfferCreateParameter, string tradeOfferMessage, string tradeOfferToken)
+        {
+            HttpResponseMessage response;
+            using (var client = new HttpClient(httpClientHandler))
+            {
+                var content = new FormUrlEncodedContent(new[]
+                {
+                    new KeyValuePair<string, string>("captcha",""),
+                    new KeyValuePair<string, string>("json_tradeoffer", JsonConvert.SerializeObject(createOffer)),
+                    new KeyValuePair<string, string>("partner", partnerCommunityId.ToString()),
+                    new KeyValuePair<string, string>("serverid", "1"),
+                    new KeyValuePair<string, string>("sessionid", sessionId),
+                    new KeyValuePair<string, string>("trade_offer_create_params", JsonConvert.SerializeObject(tradeOfferCreateParameter)),
+                    new KeyValuePair<string, string>("tradeoffermessage", tradeOfferMessage)
+                });
+                client.BaseAddress = Uris.SteamCommunityBaseSecured;
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.Accept, HttpHeaderValues.AcceptAll);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.AcceptEncoding,
+                    HttpHeaderValues.GzipDeflateOrBr);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.AcceptLanguage,
+                    HttpHeaderValues.AcceptLanguageEnglish);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.UserAgent, HttpHeaderValues.ChromeUserAgent);
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.Referer,
+                    UrlFactory.TradeOfferExecutrion(partnerCommunityId,
+                        tradeOfferToken));
+                client.DefaultRequestHeaders.TryAddWithoutValidation(
+                    HttpHeaderKeys.Origin, Urls.SteamCommunityBaseSecured);
+                client.DefaultRequestHeaders.Host =
+                    Uris.SteamCommunityBaseSecured.Host;
+                response =
+                    client.PostAsync(UrlPaths.SendTradeOffer, content).Result;
+            }
             return response;
         }
     }
