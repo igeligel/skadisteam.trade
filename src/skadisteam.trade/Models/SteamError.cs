@@ -2,6 +2,7 @@ namespace skadisteam.trade.Models
 {
     public enum SteamError
     {
+        Undefined,
         Invalid = 0,
         Ok = 1,
         Fail = 2,
