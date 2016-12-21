@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -5,10 +6,12 @@ using skadisteam.login.Models;
 using AngleSharp.Parser.Html;
 using Newtonsoft.Json;
 using skadisteam.trade.Constants;
+using skadisteam.trade.Converter;
 using skadisteam.trade.Extensions;
 using skadisteam.trade.Factories;
 using skadisteam.trade.Factories.BasicTradeOffer;
 using skadisteam.trade.Factories.TradeOffer;
+using skadisteam.trade.Interfaces;
 using skadisteam.trade.Models;
 using skadisteam.trade.Models.BasicTradeOffer;
 using skadisteam.trade.Models.Json.AcceptingOffers;
@@ -99,7 +102,39 @@ namespace skadisteam.trade
                 JsonConvert.DeserializeObject<SendOfferResponse>(responseBody);
         }
 
-        public TradeReceiptResponse AcceptOffer(SkadiTradeOffer skadiTradeOffer)
+        
+        private IAcceptOfferResponse GetOfferResponse(string responseBody)
+        {
+            var mobileConfirmationResponse =
+                (MobileConfirmationResponse)
+                JsonToAcceptOfferResponse
+                    .ParseAcceptOffer<MobileConfirmationResponse>(responseBody);
+            if (mobileConfirmationResponse != null)
+                return mobileConfirmationResponse;
+
+            var tradeReceiptResponse =
+                (TradeReceiptResponse)
+                JsonToAcceptOfferResponse.ParseAcceptOffer<TradeReceiptResponse>
+                    (responseBody);
+            if (tradeReceiptResponse != null)
+                return tradeReceiptResponse;
+
+            var steamErrorResponse =
+                (SteamErrorResponse)
+                JsonToAcceptOfferResponse.ParseAcceptOffer<SteamErrorResponse>(
+                    responseBody);
+
+            var acceptOfferErrorResponse = new AcceptOfferErrorResponse
+            {
+                SteamError = SteamError.Undefined
+            };
+            if (steamErrorResponse == null) return acceptOfferErrorResponse;
+            acceptOfferErrorResponse.SteamError =
+                SteamErrorFactory.ParseError(steamErrorResponse);
+            return acceptOfferErrorResponse;
+        }
+
+        public IAcceptOfferResponse AcceptOffer(SkadiTradeOffer skadiTradeOffer)
         {
             var path = UrlPathFactory.AcceptOffer(skadiTradeOffer.Id);
             var httpClientHandler =
@@ -108,59 +143,7 @@ namespace skadisteam.trade
             var response = RequestFactory.AcceptOffer(httpClientHandler,
                 skadiTradeOffer, path);
             var responseBody = response.Content.ReadAsStringAsync().Result;
-
-            // ReSharper disable once NotAccessedVariable
-            // TODO: Create model to return.
-            MobileConfirmationResponse mobileConfirmationResponse = null;
-            TradeReceiptResponse tradeReceiptResponse = null;
-            SteamErrorResponse steamErrorResponse = null;
-            try
-            {
-                // ReSharper disable once RedundantAssignment
-                mobileConfirmationResponse =
-                    JsonConvert.DeserializeObject<MobileConfirmationResponse>(
-                        responseBody);
-            }
-            catch (JsonSerializationException)
-            {
-
-            }
-
-            try
-            {
-                tradeReceiptResponse =
-                    JsonConvert.DeserializeObject<TradeReceiptResponse>(
-                        responseBody);
-            }
-            catch (JsonSerializationException)
-            {
-
-            }
-
-            try
-            {
-                steamErrorResponse =
-                    JsonConvert.DeserializeObject<SteamErrorResponse>(
-                        responseBody);
-
-            }
-            catch (JsonSerializationException)
-            {
-            }
-
-            if (steamErrorResponse != null)
-            {
-                var errorCode =
-                    int.Parse(
-                        steamErrorResponse.StrError.Replace(
-                            "There was an error accepting this trade offer.  Please try again later. (",
-                            "").Replace(")", ""));
-                // ReSharper disable once UnusedVariable
-                // TODO: implement model to return.
-                var errEnum = (SteamError)errorCode;
-            }
-
-            return tradeReceiptResponse;
+            return GetOfferResponse(responseBody);
         }
 
         public void ConfirmAllTrades(string deviceId, string identitySecret)
@@ -191,6 +174,10 @@ namespace skadisteam.trade
                                            "allow", deviceId, identitySecret,
                                            _skadiLoginResponse.SteamCommunityId) +
                                    "&cid=" + dataConfigId + "&ck=" + dataKey;
+
+                handler =
+                HttpClientHandlerFactory.CreateWithCookieContainer(
+                    _skadiLoginResponse.SkadiLoginCookies);
                 RequestFactory.ApproveConfirmations(handler, urlToConfirm, url,
                     _skadiLoginResponse.SteamCommunityId);
             }
