@@ -24,9 +24,12 @@ namespace skadisteam.trade.Factories.BasicTradeOffer
                     BasicTradeOfferItemListFactory.CreatePartnerItems(
                         tradeOfferItems),
                 Id = GetTradeOfferId(angleSharpElement),
-                Active = TradeOfferActive(angleSharpElement),
-                ExpiringDate = GetExpireDate(angleSharpElement)
+                Active = TradeOfferActive(angleSharpElement)
             };
+            if (basicTradeOffer.Active)
+            {
+                basicTradeOffer.ExpiringDate = GetExpireDate(angleSharpElement);
+            }
             return basicTradeOffer;
         }
 
