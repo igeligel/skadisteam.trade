@@ -77,6 +77,17 @@ namespace skadisteam.trade
                 UrlPathFactory.DeclineOffer(skadiTradeOffer.Id));
         }
 
+        public IAcceptOfferResponse AcceptOffer(SkadiTradeOffer skadiTradeOffer)
+        {
+            var httpClientHandler =
+                HttpClientHandlerFactory.CreateWithCookieContainer(
+                    _skadiLoginResponse.SkadiLoginCookies);
+            var response = RequestFactory.AcceptOffer(httpClientHandler,
+                skadiTradeOffer, UrlPathFactory.AcceptOffer(skadiTradeOffer.Id));
+            var responseBody = response.Content.ReadAsStringAsync().Result;
+            return OfferResponseFactory.Create(responseBody);
+        }
+        
         public void SendTradeOffer(List<Asset> myAssets, List<Asset> partnerAssets, long partnerCommunityId, string tradeOfferToken, string tradeOfferMessage)
         {
             var createOffer = CreateOfferModelFactory.Create(myAssets,
@@ -103,48 +114,9 @@ namespace skadisteam.trade
         }
 
         
-        private IAcceptOfferResponse GetOfferResponse(string responseBody)
-        {
-            var mobileConfirmationResponse =
-                (MobileConfirmationResponse)
-                JsonToAcceptOfferResponse
-                    .ParseAcceptOffer<MobileConfirmationResponse>(responseBody);
-            if (mobileConfirmationResponse != null)
-                return mobileConfirmationResponse;
+        
 
-            var tradeReceiptResponse =
-                (TradeReceiptResponse)
-                JsonToAcceptOfferResponse.ParseAcceptOffer<TradeReceiptResponse>
-                    (responseBody);
-            if (tradeReceiptResponse != null)
-                return tradeReceiptResponse;
-
-            var steamErrorResponse =
-                (SteamErrorResponse)
-                JsonToAcceptOfferResponse.ParseAcceptOffer<SteamErrorResponse>(
-                    responseBody);
-
-            var acceptOfferErrorResponse = new AcceptOfferErrorResponse
-            {
-                SteamError = SteamError.Undefined
-            };
-            if (steamErrorResponse == null) return acceptOfferErrorResponse;
-            acceptOfferErrorResponse.SteamError =
-                SteamErrorFactory.ParseError(steamErrorResponse);
-            return acceptOfferErrorResponse;
-        }
-
-        public IAcceptOfferResponse AcceptOffer(SkadiTradeOffer skadiTradeOffer)
-        {
-            var path = UrlPathFactory.AcceptOffer(skadiTradeOffer.Id);
-            var httpClientHandler =
-                HttpClientHandlerFactory.CreateWithCookieContainer(
-                    _skadiLoginResponse.SkadiLoginCookies);
-            var response = RequestFactory.AcceptOffer(httpClientHandler,
-                skadiTradeOffer, path);
-            var responseBody = response.Content.ReadAsStringAsync().Result;
-            return GetOfferResponse(responseBody);
-        }
+        
 
         public void ConfirmAllTrades(string deviceId, string identitySecret)
         {
