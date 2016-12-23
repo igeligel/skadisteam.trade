@@ -40,24 +40,7 @@ namespace skadisteam.trade.Factories.BasicTradeOffer
 
         private static OnlineStatus CreateVisiblityState(IParentNode angleSharpElement)
         {
-            var visibilityState =
-                angleSharpElement.QuerySelectorAll(
-                    HtmlQuerySelectors.PlayerAvatarClass)
-                    .FirstOrDefault()
-                    .ClassList.FirstOrDefault(e => e != HtmlClasses.PlayerAvatar);
-
-            switch (visibilityState)
-            {
-                case HtmlClasses.Online:
-                    return OnlineStatus.Online;
-                case HtmlClasses.Offline:
-                    return OnlineStatus.Offline;
-                case HtmlClasses.InGame:
-                    return OnlineStatus.InGame;
-                // ReSharper disable once RedundantEmptyDefaultSwitchBranch
-                default:
-                    return OnlineStatus.Undefined;
-            }
+            return OnlineStatusFactory.Create(angleSharpElement);
         }
 
         private static int CreateMiniProfileId(IParentNode angleSharpElement)
