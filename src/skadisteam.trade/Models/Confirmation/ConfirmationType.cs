@@ -4,7 +4,7 @@ namespace skadisteam.trade.Models.Confirmation
     {
         Undefined,
         Generic = 1,
-        CreateListing = 2,
-        ConfirmTrade = 3
+        ConfirmTrade = 2,
+        CreateListing = 3
     }
 }
