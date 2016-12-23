@@ -7,13 +7,51 @@ using skadisteam.trade.Interfaces;
 using System.Linq;
 using skadisteam.trade.Extensions;
 using skadisteam.trade.Models.Confirmation;
+using System.Text.RegularExpressions;
 
 namespace skadisteam.trade.Factories
 {
     public static class MobileConfirmationFactory
     {
+        private static DateTime parseTime(string timeText)
+        {
+            var test = timeText;
+            if (timeText == "Just now")
+            {
+                return DateTime.UtcNow;
+            }
+            if (timeText.Contains(" minute ago"))
+            {
+                return DateTime.UtcNow.AddMinutes(-1);
+            }
+            if (timeText.Contains(" minutes ago"))
+            {
+                var timeToSubtract = int.Parse(Regex.Split(timeText, " minutes ago")[0]);
+                return DateTime.UtcNow.AddMinutes(-timeToSubtract);
+            }
+            if (timeText.Contains(" hour ago"))
+            {
+                return DateTime.UtcNow.AddHours(-1);
+            }
+            if (timeText.Contains(" hours ago"))
+            {
+                var timeToSubtract = int.Parse(Regex.Split(timeText, " hours ago")[0]);
+                return DateTime.UtcNow.AddHours(-timeToSubtract);
+            }
+            if (timeText.Contains(" day ago"))
+            {
+                return DateTime.UtcNow.AddDays(-1);
+            }
+            if (timeText.Contains(" days ago"))
+            {
+                var timeToSubtract = int.Parse(Regex.Split(timeText, " days ago")[0]);
+                return DateTime.UtcNow.AddDays(-timeToSubtract);
+            }
+            return DateTime.MinValue;
+        }
         internal static IMobileConfirmation Create(IElement domElement)
         {
+            if (domElement == null) return null;
             var id = long.Parse(domElement.Attributes.FirstOrDefault(
                     e => e.Name == "data-confid").Value);
             var key =
@@ -27,15 +65,17 @@ namespace skadisteam.trade.Factories
                 int.Parse(
                     domElement.Attributes.FirstOrDefault(
                         e => e.Name == "data-type").Value);
-            var time = domElement.QuerySelector(
+            // mobileconf_list_entry_description
+            var timeText = domElement.QuerySelector(
                     ".mobileconf_list_entry_description").Children[2].TextContent;
+            var time = parseTime(timeText);
+
             var mobileConfirmation = new MobileConfirmation
             {
                 Id = id,
                 Creator = creator,
                 Key = key,
-                // TODO: Time!
-                Time = DateTime.UtcNow
+                Time = time
             };
             
             // ReSharper disable once SwitchStatementMissingSomeCases
