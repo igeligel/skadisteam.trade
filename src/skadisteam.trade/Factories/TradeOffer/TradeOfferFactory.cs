@@ -12,6 +12,7 @@ using skadisteam.trade.Models;
 using skadisteam.trade.Models.Json;
 using skadisteam.trade.Models.TradeOffer;
 using AppData = skadisteam.trade.Models.Json.AppData;
+using skadisteam.trade.Exceptions;
 
 namespace skadisteam.trade.Factories.TradeOffer
 {
@@ -19,6 +20,10 @@ namespace skadisteam.trade.Factories.TradeOffer
     {
         internal static SkadiTradeOffer Create(string content, int id)
         {
+            if (content.Contains("This trade offer is no longer valid."))
+            {
+                throw new OfferNotValidException("This offer is no longer valid. This will be thrown by steam if something is broken or the offer is already accepted/declined");
+            }
             var document = new HtmlParser().Parse(content);
             var completeScript = GetScript(document);
 
@@ -49,8 +54,8 @@ namespace skadisteam.trade.Factories.TradeOffer
                 SessionId = GetSessionId(content),
                 TradeOfferNote = GetTradeOfferNote(document)
             };
-            
-            
+
+
             var myRgAppContextData = GetMyAppDataContext(completeScript);
             var partnerRgAppContextData =
                 GetPartnerAppDataContext(completeScript);
