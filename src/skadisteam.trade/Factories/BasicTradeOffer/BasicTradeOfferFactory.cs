@@ -53,6 +53,7 @@ namespace skadisteam.trade.Factories.BasicTradeOffer
         private static DateTime GetExpireDate(IParentNode angleSharpElement)
         {
             var test = angleSharpElement.LastElementChild.TextContent;
+            if (!test.Contains(RegexPatterns.OfferExpireson)) return DateTime.MinValue;
             var bla = Regex.Split(test, RegexPatterns.OfferExpireson)[1];
             bla = bla.RemoveNewLines().RemoveTabs();
             var expireTime = DateTime.ParseExact(bla,
