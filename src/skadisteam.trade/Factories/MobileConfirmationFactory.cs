@@ -2,11 +2,57 @@ using System;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using AngleSharp.Dom;
+using skadisteam.trade.Interfaces;
+using System.Linq;
+using skadisteam.trade.Extensions;
+using skadisteam.trade.Models.Confirmation;
 
 namespace skadisteam.trade.Factories
 {
     public static class MobileConfirmationFactory
     {
+        internal static IMobileConfirmation Create(IElement domElement)
+        {
+            var id = long.Parse(domElement.Attributes.FirstOrDefault(
+                    e => e.Name == "data-confid").Value);
+            var key =
+                    ulong.Parse(domElement.Attributes.FirstOrDefault(
+                        e => e.Name == "data-key").Value);
+            var creator =
+                    int.Parse(domElement.Attributes.FirstOrDefault(
+                        e => e.Name == "data-creator").Value);
+            var type =
+                (ConfirmationType)
+                int.Parse(
+                    domElement.Attributes.FirstOrDefault(
+                        e => e.Name == "data-type").Value);
+            var time = domElement.QuerySelector(
+                    ".mobileconf_list_entry_description").Children[2].TextContent;
+            var mobileConfirmation = new MobileConfirmation
+            {
+                Id = id,
+                Creator = creator,
+                Key = key,
+                // TODO: Time!
+                Time = DateTime.UtcNow
+            };
+            
+            // ReSharper disable once SwitchStatementMissingSomeCases
+            switch (type)
+            {
+                case ConfirmationType.ConfirmTrade:
+                    var tradeConfirmation =
+                        mobileConfirmation.ToTradeConfirmation(domElement);
+                    return tradeConfirmation;
+                case ConfirmationType.CreateListing:
+                    var marketListingConfirmation =
+                        new MarketListingConfirmation();
+                    return marketListingConfirmation;
+            }
+            return mobileConfirmation;
+        }
+
         internal static string GenerateConfirmationUrl(string devideId, string identitySecret, long steamCommunityId)
         {
             const string endpoint = "/mobileconf/conf?";
