@@ -1,34 +1,40 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using skadisteam.login.Models;
 using AngleSharp.Parser.Html;
 using Newtonsoft.Json;
 using skadisteam.trade.Constants;
-using skadisteam.trade.Converter;
 using skadisteam.trade.Extensions;
 using skadisteam.trade.Factories;
 using skadisteam.trade.Factories.BasicTradeOffer;
 using skadisteam.trade.Factories.TradeOffer;
 using skadisteam.trade.Interfaces;
-using skadisteam.trade.Models;
 using skadisteam.trade.Models.BasicTradeOffer;
-using skadisteam.trade.Models.Json.AcceptingOffers;
 using skadisteam.trade.Models.Json.CreatingOffers;
 using skadisteam.trade.Models.TradeOffer;
 using skadisteam.trade.Validator;
+using System.Net.Http;
 
 namespace skadisteam.trade
 {
     public class SkadiTradeClient
     {
         private readonly SkadiLoginResponse _skadiLoginResponse;
+        private readonly string _deviceId;
+        private readonly string _identitySecret;
 
         public SkadiTradeClient(SkadiLoginResponse skadiLoginResponse)
         {
             _skadiLoginResponse = skadiLoginResponse;
             _skadiLoginResponse.SkadiLoginCookies.AddWebTradeEligilityCookie();
+        }
+
+        public SkadiTradeClient(SkadiLoginResponse skadiLoginResponse, string deviceId, string identitySecret)
+            :this(skadiLoginResponse)
+        {
+            _deviceId = deviceId;
+            _identitySecret = identitySecret;
         }
 
         public List<BasicTradeOffer> GetBasicTradeOffers()
@@ -113,13 +119,29 @@ namespace skadisteam.trade
                 JsonConvert.DeserializeObject<SendOfferResponse>(responseBody);
         }
 
-        
-        
+        private void AcceptMobileConfirmation(IMobileConfirmation mobileConfirmation, string referer)
+        {
+            var urlToConfirm = "/mobileconf/ajaxop?op=allow&" +
+                                   MobileConfirmationFactory
+                                       .GenerateConfirmationQueryParams(
+                                           "allow", _deviceId, _identitySecret,
+                                           _skadiLoginResponse.SteamCommunityId) +
+                                   "&cid=" + mobileConfirmation.Id + "&ck=" + mobileConfirmation.Key;
 
+            HttpClientHandler handler =
+            HttpClientHandlerFactory.CreateWithCookieContainer(
+                _skadiLoginResponse.SkadiLoginCookies);
+            RequestFactory.ApproveConfirmations(handler, urlToConfirm, referer,
+                _skadiLoginResponse.SteamCommunityId);
+        }
         
-
         public void ConfirmAllTrades(string deviceId, string identitySecret)
         {
+            if (string.IsNullOrEmpty(_deviceId) || string.IsNullOrEmpty(_identitySecret))
+            {
+                throw new ArgumentException("You have not set the device id and/or the identity secret which is required for this functionality." + 
+                    "To fix this please use a constructor of this class where the device id and the identity secret is required as parameter.");
+            }
             var url = MobileConfirmationFactory.GenerateConfirmationUrl(
                 deviceId, identitySecret, _skadiLoginResponse.SteamCommunityId);
             var handler =
@@ -130,28 +152,21 @@ namespace skadisteam.trade
                     _skadiLoginResponse.SteamCommunityId);
             var confirmationDataContent =
                 confirmationDataResponse.Content.ReadAsStringAsync().Result;
-            var mobileConfList = Regex.Split(confirmationDataContent,
-                "<div class=\"mobileconf_list_entry\"");
-            if (mobileConfList.Length == 1) return;
-            for (var i = 1; i < mobileConfList.Length; i++)
-            {
-                var dataConfigId =
-                    Regex.Split(mobileConfList[i], "data-confid=\"")[1];
-                dataConfigId = Regex.Split(dataConfigId, "\"")[0];
-                var dataKey = Regex.Split(mobileConfList[i], "data-key=\"")[1];
-                dataKey = Regex.Split(dataKey, "\"")[0];
-                var urlToConfirm = "/mobileconf/ajaxop?op=allow&" +
-                                   MobileConfirmationFactory
-                                       .GenerateConfirmationQueryParams(
-                                           "allow", deviceId, identitySecret,
-                                           _skadiLoginResponse.SteamCommunityId) +
-                                   "&cid=" + dataConfigId + "&ck=" + dataKey;
 
-                handler =
-                HttpClientHandlerFactory.CreateWithCookieContainer(
-                    _skadiLoginResponse.SkadiLoginCookies);
-                RequestFactory.ApproveConfirmations(handler, urlToConfirm, url,
-                    _skadiLoginResponse.SteamCommunityId);
+            var parser = new HtmlParser();
+            var document = parser.Parse(confirmationDataContent);
+
+            var mobileConfirmationList = document.QuerySelectorAll(".mobileconf_list_entry");
+            List<IMobileConfirmation> mobileConfirmations = new List<IMobileConfirmation>();
+            foreach (var mobileConfirmationDomElement in mobileConfirmationList)
+            {
+                var mobileConfirmation = MobileConfirmationFactory.Create(mobileConfirmationDomElement);
+                mobileConfirmations.Add(mobileConfirmation);
+            }
+
+            foreach (var mobileConfirmation in mobileConfirmations)
+            {
+                AcceptMobileConfirmation(mobileConfirmation, url);
             }
         }
     }
