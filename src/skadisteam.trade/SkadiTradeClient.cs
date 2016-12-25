@@ -15,6 +15,7 @@ using skadisteam.trade.Models.Json.CreatingOffers;
 using skadisteam.trade.Models.TradeOffer;
 using skadisteam.trade.Validator;
 using System.Net.Http;
+using skadisteam.trade.Models.Confirmation;
 
 namespace skadisteam.trade
 {
@@ -129,7 +130,7 @@ namespace skadisteam.trade
             var urlToConfirm = "/mobileconf/ajaxop?op=allow&" +
                                    MobileConfirmationFactory
                                        .GenerateConfirmationQueryParams(
-                                           "allow", _deviceId, _identitySecret,
+                                           ConfirmationTag.Allow, _deviceId, _identitySecret,
                                            _skadiLoginResponse.SteamCommunityId) +
                                    "&cid=" + mobileConfirmation.Id + "&ck=" + mobileConfirmation.Key;
 

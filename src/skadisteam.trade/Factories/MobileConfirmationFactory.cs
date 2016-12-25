@@ -99,15 +99,15 @@ namespace skadisteam.trade.Factories
         {
             const string endpoint = "/mobileconf/conf?";
             const string tag = "conf";
-            var queryString = GenerateConfirmationQueryParams(tag, devideId, identitySecret, steamCommunityId);
+            var queryString = GenerateConfirmationQueryParams(ConfirmationTag.Confirm, devideId, identitySecret, steamCommunityId);
             return endpoint + queryString;
         }
 
-        internal static string GenerateConfirmationQueryParams(string tag, string deviceId, string identitySecret, long steamCommunityId)
+        internal static string GenerateConfirmationQueryParams(ConfirmationTag tag, string deviceId, string identitySecret, long steamCommunityId)
         {
             var time = TimeAligner.GetSteamTime();
             return "p=" + deviceId + "&a=" + steamCommunityId + "&k=" +
-                   _generateConfirmationHashForTime(identitySecret, time, tag) + "&t=" + time + "&m=android&tag=" + tag;
+                   _generateConfirmationHashForTime(identitySecret, time, tag.ToText()) + "&t=" + time + "&m=android&tag=" + tag;
         }
 
         private static string _generateConfirmationHashForTime(string identitySecret, long time, string tag)
