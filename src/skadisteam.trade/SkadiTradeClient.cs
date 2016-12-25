@@ -99,8 +99,6 @@ namespace skadisteam.trade
             var createOffer = CreateOfferModelFactory.Create(myAssets,
                 partnerAssets);
 
-            JsonConvert.SerializeObject(createOffer);
-
             var tradeOfferCreateParameter = new TradeOfferCreateParameter
             {
                 TradeOfferAccessToken = tradeOfferToken
