@@ -119,8 +119,15 @@ namespace skadisteam.trade
                 JsonConvert.DeserializeObject<SendOfferResponse>(responseBody);
         }
 
-        private void AcceptMobileConfirmation(IMobileConfirmation mobileConfirmation, string referer)
+        private void AcceptMobileConfirmation(IMobileConfirmation mobileConfirmation)
         {
+            var referer = MobileConfirmationFactory.GenerateConfirmationUrl(
+                _deviceId, _identitySecret, _skadiLoginResponse.SteamCommunityId);
+            if (string.IsNullOrEmpty(_deviceId) || string.IsNullOrEmpty(_identitySecret))
+            {
+                throw new ArgumentException("You have not set the device id and/or the identity secret which is required for this functionality." +
+                    "To fix this please use a constructor of this class where the device id and the identity secret is required as parameter.");
+            }
             var urlToConfirm = "/mobileconf/ajaxop?op=allow&" +
                                    MobileConfirmationFactory
                                        .GenerateConfirmationQueryParams(
@@ -134,16 +141,11 @@ namespace skadisteam.trade
             RequestFactory.ApproveConfirmations(handler, urlToConfirm, referer,
                 _skadiLoginResponse.SteamCommunityId);
         }
-        
-        public void ConfirmAllTrades(string deviceId, string identitySecret)
+
+        public List<IMobileConfirmation> GetConfirmations()
         {
-            if (string.IsNullOrEmpty(_deviceId) || string.IsNullOrEmpty(_identitySecret))
-            {
-                throw new ArgumentException("You have not set the device id and/or the identity secret which is required for this functionality." + 
-                    "To fix this please use a constructor of this class where the device id and the identity secret is required as parameter.");
-            }
             var url = MobileConfirmationFactory.GenerateConfirmationUrl(
-                deviceId, identitySecret, _skadiLoginResponse.SteamCommunityId);
+                _deviceId, _identitySecret, _skadiLoginResponse.SteamCommunityId);
             var handler =
                 HttpClientHandlerFactory.CreateWithCookieContainer(
                     _skadiLoginResponse.SkadiLoginCookies);
@@ -163,10 +165,15 @@ namespace skadisteam.trade
                 var mobileConfirmation = MobileConfirmationFactory.Create(mobileConfirmationDomElement);
                 mobileConfirmations.Add(mobileConfirmation);
             }
-
+            return mobileConfirmations;
+        }
+        
+        public void ConfirmAllTrades(string deviceId, string identitySecret)
+        {
+            var mobileConfirmations = GetConfirmations();
             foreach (var mobileConfirmation in mobileConfirmations)
             {
-                AcceptMobileConfirmation(mobileConfirmation, url);
+                AcceptMobileConfirmation(mobileConfirmation);
             }
         }
     }
