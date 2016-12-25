@@ -1,3 +1,5 @@
+using skadisteam.trade.Models;
+
 namespace skadisteam.trade.Factories
 {
     internal static class UrlPathFactory
@@ -20,6 +22,16 @@ namespace skadisteam.trade.Factories
         internal static string AcceptOffer(int id)
         {
             return "/tradeoffer/" + id + "/accept";
+        }
+
+        internal static string ConfirmationUrl(ConfirmationUrlParameter confirmationUrlParameter)
+        {
+            return "/mobileconf/ajaxop?op=allow&" +
+                                   MobileConfirmationFactory
+                                       .GenerateConfirmationQueryParams(
+                                           confirmationUrlParameter.ConfirmationTag, confirmationUrlParameter.DeviceId, confirmationUrlParameter.IdentitySecret,
+                                           confirmationUrlParameter.SteamCommunityId) +
+                                   "&cid=" + confirmationUrlParameter.MobileConfirmation.Id + "&ck=" + confirmationUrlParameter.MobileConfirmation.Key;
         }
     }
 }
