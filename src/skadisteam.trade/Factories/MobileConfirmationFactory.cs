@@ -8,6 +8,8 @@ using System.Linq;
 using skadisteam.trade.Extensions;
 using skadisteam.trade.Models.Confirmation;
 using System.Text.RegularExpressions;
+using System.Collections.Generic;
+using AngleSharp.Parser.Html;
 
 namespace skadisteam.trade.Factories
 {
@@ -153,6 +155,21 @@ namespace skadisteam.trade.Factories
             {
                 return null; //Fix soon: catch-all is BAD!
             }
+        }
+
+        internal static List<IMobileConfirmation> CreateConfirmationList()
+        {
+            var parser = new HtmlParser();
+            var document = parser.Parse(confirmationDataContent);
+
+            var mobileConfirmationList = document.QuerySelectorAll(".mobileconf_list_entry");
+            List<IMobileConfirmation> mobileConfirmations = new List<IMobileConfirmation>();
+            foreach (var mobileConfirmationDomElement in mobileConfirmationList)
+            {
+                var mobileConfirmation = MobileConfirmationFactory.Create(mobileConfirmationDomElement);
+                mobileConfirmations.Add(mobileConfirmation);
+            }
+            return mobileConfirmations; 
         }
     }
 }
