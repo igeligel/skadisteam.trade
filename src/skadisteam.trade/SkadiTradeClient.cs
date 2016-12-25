@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using skadisteam.login.Models;
@@ -16,6 +15,7 @@ using skadisteam.trade.Models.TradeOffer;
 using skadisteam.trade.Validator;
 using System.Net.Http;
 using skadisteam.trade.Models.Confirmation;
+using skadisteam.trade.Models;
 
 namespace skadisteam.trade
 {
@@ -138,13 +138,14 @@ namespace skadisteam.trade
             var referer = MobileConfirmationFactory.GenerateConfirmationUrl(
                 _deviceId, _identitySecret, _skadiLoginResponse.SteamCommunityId);
             DeviceIdIdentitySecretValidator.Validate(_deviceId, _identitySecret);
-            var urlToConfirm = "/mobileconf/ajaxop?op=allow&" +
-                                   MobileConfirmationFactory
-                                       .GenerateConfirmationQueryParams(
-                                           ConfirmationTag.Allow, _deviceId, _identitySecret,
-                                           _skadiLoginResponse.SteamCommunityId) +
-                                   "&cid=" + mobileConfirmation.Id + "&ck=" + mobileConfirmation.Key;
-
+            var confirmationUrlParameter = new ConfirmationUrlParameter
+            {
+                ConfirmationTag = ConfirmationTag.Allow,
+                DeviceId = _deviceId,
+                IdentitySecret = _identitySecret,
+                MobileConfirmation = mobileConfirmation
+            };
+            var urlToConfirm = UrlPathFactory.ConfirmationUrl(confirmationUrlParameter);
             HttpClientHandler handler =
             HttpClientHandlerFactory.CreateWithCookieContainer(
                 _skadiLoginResponse.SkadiLoginCookies);
