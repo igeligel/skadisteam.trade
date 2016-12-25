@@ -118,15 +118,26 @@ namespace skadisteam.trade
                 JsonConvert.DeserializeObject<SendOfferResponse>(responseBody);
         }
 
+        public List<IMobileConfirmation> GetConfirmations()
+        {
+            var url = MobileConfirmationFactory.GenerateConfirmationUrl(
+                _deviceId, _identitySecret, _skadiLoginResponse.SteamCommunityId);
+            var handler =
+                HttpClientHandlerFactory.CreateWithCookieContainer(
+                    _skadiLoginResponse.SkadiLoginCookies);
+            var confirmationDataResponse =
+                RequestFactory.GetConfirmationData(handler, url,
+                    _skadiLoginResponse.SteamCommunityId);
+            var confirmationDataContent =
+                confirmationDataResponse.Content.ReadAsStringAsync().Result;
+            return MobileConfirmationFactory.CreateConfirmationList(confirmationDataContent);
+        }
+
         private void AcceptMobileConfirmation(IMobileConfirmation mobileConfirmation)
         {
             var referer = MobileConfirmationFactory.GenerateConfirmationUrl(
                 _deviceId, _identitySecret, _skadiLoginResponse.SteamCommunityId);
-            if (string.IsNullOrEmpty(_deviceId) || string.IsNullOrEmpty(_identitySecret))
-            {
-                throw new ArgumentException("You have not set the device id and/or the identity secret which is required for this functionality." +
-                    "To fix this please use a constructor of this class where the device id and the identity secret is required as parameter.");
-            }
+            DeviceIdIdentitySecretValidator.Validate(_deviceId, _identitySecret);
             var urlToConfirm = "/mobileconf/ajaxop?op=allow&" +
                                    MobileConfirmationFactory
                                        .GenerateConfirmationQueryParams(
@@ -141,29 +152,18 @@ namespace skadisteam.trade
                 _skadiLoginResponse.SteamCommunityId);
         }
 
-        public List<IMobileConfirmation> GetConfirmations()
+        public void ConfirmAllTrades(List<IMobileConfirmation> mobileConfirmations)
         {
-            var url = MobileConfirmationFactory.GenerateConfirmationUrl(
-                _deviceId, _identitySecret, _skadiLoginResponse.SteamCommunityId);
-            var handler =
-                HttpClientHandlerFactory.CreateWithCookieContainer(
-                    _skadiLoginResponse.SkadiLoginCookies);
-            var confirmationDataResponse =
-                RequestFactory.GetConfirmationData(handler, url,
-                    _skadiLoginResponse.SteamCommunityId);
-            var confirmationDataContent =
-                confirmationDataResponse.Content.ReadAsStringAsync().Result;
-            var mobileConfirmations = MobileConfirmationFactory.CreateConfirmationList(confirmationDataContent);
-            return mobileConfirmations;
+            foreach (var mobileConfirmation in mobileConfirmations)
+            {
+                AcceptMobileConfirmation(mobileConfirmation);
+            }
         }
         
         public void ConfirmAllTrades(string deviceId, string identitySecret)
         {
             var mobileConfirmations = GetConfirmations();
-            foreach (var mobileConfirmation in mobileConfirmations)
-            {
-                AcceptMobileConfirmation(mobileConfirmation);
-            }
+            ConfirmAllTrades(mobileConfirmations);
         }
     }
 }
