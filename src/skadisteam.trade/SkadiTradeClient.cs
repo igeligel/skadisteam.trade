@@ -152,7 +152,7 @@ namespace skadisteam.trade
                     _skadiLoginResponse.SteamCommunityId);
             var confirmationDataContent =
                 confirmationDataResponse.Content.ReadAsStringAsync().Result;
-            var mobileConfirmations = MobileConfirmationFactory.CreateConfirmationList();
+            var mobileConfirmations = MobileConfirmationFactory.CreateConfirmationList(confirmationDataContent);
             return mobileConfirmations;
         }
         

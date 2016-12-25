@@ -157,7 +157,7 @@ namespace skadisteam.trade.Factories
             }
         }
 
-        internal static List<IMobileConfirmation> CreateConfirmationList()
+        internal static List<IMobileConfirmation> CreateConfirmationList(string confirmationDataContent)
         {
             var parser = new HtmlParser();
             var document = parser.Parse(confirmationDataContent);
