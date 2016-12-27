@@ -52,7 +52,6 @@ namespace skadisteam.trade
                     myTradeOffersPath, _skadiLoginResponse.SteamCommunityId);
 
             // ReSharper disable once UnusedVariable
-            // TODO: Check responses if they are valid.
             var valid = ResponseValidator.GetTradeOffersResponse(response);
 
             var content = response.Content.ReadAsStringAsync().Result;
@@ -143,7 +142,8 @@ namespace skadisteam.trade
                 ConfirmationTag = ConfirmationTag.Allow,
                 DeviceId = _deviceId,
                 IdentitySecret = _identitySecret,
-                MobileConfirmation = mobileConfirmation
+                MobileConfirmation = mobileConfirmation,
+                SteamCommunityId = _skadiLoginResponse.SteamCommunityId
             };
             var urlToConfirm = UrlPathFactory.ConfirmationUrl(confirmationUrlParameter);
             HttpClientHandler handler =
