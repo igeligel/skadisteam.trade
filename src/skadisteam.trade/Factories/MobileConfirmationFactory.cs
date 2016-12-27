@@ -107,7 +107,9 @@ namespace skadisteam.trade.Factories
         {
             var time = TimeAligner.GetSteamTime();
             return "p=" + deviceId + "&a=" + steamCommunityId + "&k=" +
-                   _generateConfirmationHashForTime(identitySecret, time, tag.ToText()) + "&t=" + time + "&m=android&tag=" + tag;
+                   _generateConfirmationHashForTime(identitySecret, time,
+                       tag.ToText()) + "&t=" + time + "&m=android&tag=" +
+                   tag.ToText();
         }
 
         private static string _generateConfirmationHashForTime(string identitySecret, long time, string tag)
