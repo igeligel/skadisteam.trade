@@ -15,9 +15,8 @@ namespace skadisteam.trade.Factories
 {
     public static class MobileConfirmationFactory
     {
-        private static DateTime parseTime(string timeText)
+        private static DateTime ParseTime(string timeText)
         {
-            var test = timeText;
             if (timeText == "Just now")
             {
                 return DateTime.UtcNow;
@@ -70,7 +69,7 @@ namespace skadisteam.trade.Factories
             // mobileconf_list_entry_description
             var timeText = domElement.QuerySelector(
                     ".mobileconf_list_entry_description").Children[2].TextContent;
-            var time = parseTime(timeText);
+            var time = ParseTime(timeText);
 
             var mobileConfirmation = new MobileConfirmation
             {
@@ -98,7 +97,6 @@ namespace skadisteam.trade.Factories
         internal static string GenerateConfirmationUrl(string devideId, string identitySecret, long steamCommunityId)
         {
             const string endpoint = "/mobileconf/conf?";
-            const string tag = "conf";
             var queryString = GenerateConfirmationQueryParams(ConfirmationTag.Confirm, devideId, identitySecret, steamCommunityId);
             return endpoint + queryString;
         }
@@ -168,7 +166,7 @@ namespace skadisteam.trade.Factories
             List<IMobileConfirmation> mobileConfirmations = new List<IMobileConfirmation>();
             foreach (var mobileConfirmationDomElement in mobileConfirmationList)
             {
-                var mobileConfirmation = MobileConfirmationFactory.Create(mobileConfirmationDomElement);
+                var mobileConfirmation = Create(mobileConfirmationDomElement);
                 mobileConfirmations.Add(mobileConfirmation);
             }
             return mobileConfirmations; 
