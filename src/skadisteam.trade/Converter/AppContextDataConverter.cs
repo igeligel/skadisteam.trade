@@ -3,7 +3,7 @@ using skadisteam.trade.Models.TradeOffer;
 
 namespace skadisteam.trade.Converter
 {
-    internal class AppContextDataConverter
+    internal static class AppContextDataConverter
     {
         internal static List<AppData> FromJsonModel(Dictionary<string, Models.Json.AppData> jsonAppData)
         {
