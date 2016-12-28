@@ -1,8 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
-using skadisteam.login.Models;
 using AngleSharp.Parser.Html;
 using Newtonsoft.Json;
+using skadisteam.login.Models;
 using skadisteam.trade.Constants;
 using skadisteam.trade.Extensions;
 using skadisteam.trade.Factories;
@@ -13,9 +11,10 @@ using skadisteam.trade.Models.BasicTradeOffer;
 using skadisteam.trade.Models.Json.CreatingOffers;
 using skadisteam.trade.Models.TradeOffer;
 using skadisteam.trade.Validator;
-using System.Net.Http;
 using skadisteam.trade.Models.Confirmation;
 using skadisteam.trade.Models;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace skadisteam.trade
 {
@@ -31,12 +30,13 @@ namespace skadisteam.trade
             _skadiLoginResponse.SkadiLoginCookies.AddWebTradeEligilityCookie();
         }
 
-        public SkadiTradeClient(SkadiLoginResponse skadiLoginResponse, string deviceId, string identitySecret)
-            :this(skadiLoginResponse)
+        public SkadiTradeClient(SkadiLoginResponse skadiLoginResponse,
+            string deviceId, string identitySecret) : this(skadiLoginResponse)
         {
             _deviceId = deviceId;
             _identitySecret = identitySecret;
         }
+
 
         public List<BasicTradeOffer> GetBasicTradeOffers()
         {
@@ -51,8 +51,8 @@ namespace skadisteam.trade
                 RequestFactory.GetTradeOffersListResponseMessage(handler,
                     myTradeOffersPath, _skadiLoginResponse.SteamCommunityId);
 
-            // ReSharper disable once UnusedVariable
             var valid = ResponseValidator.GetTradeOffersResponse(response);
+            if (!valid) return new List<BasicTradeOffer>();
 
             var content = response.Content.ReadAsStringAsync().Result;
             var document = new HtmlParser().Parse(content);
@@ -69,7 +69,8 @@ namespace skadisteam.trade
                 HttpClientHandlerFactory.CreateWithCookieContainer(
                     _skadiLoginResponse.SkadiLoginCookies);
             var response = RequestFactory.GetTradeOfferResponseMessage(handler,
-                UrlPathFactory.TradeOffer(id), _skadiLoginResponse.SteamCommunityId);
+                UrlPathFactory.TradeOffer(id),
+                _skadiLoginResponse.SteamCommunityId);
             var content = response.Content.ReadAsStringAsync().Result;
             return TradeOfferFactory.Create(content, id);
         }
@@ -93,8 +94,10 @@ namespace skadisteam.trade
             var responseBody = response.Content.ReadAsStringAsync().Result;
             return OfferResponseFactory.Create(responseBody);
         }
-        
-        public void SendTradeOffer(List<Asset> myAssets, List<Asset> partnerAssets, long partnerCommunityId, string tradeOfferToken, string tradeOfferMessage)
+
+        public void SendTradeOffer(List<Asset> myAssets,
+            List<Asset> partnerAssets, long partnerCommunityId,
+            string tradeOfferToken, string tradeOfferMessage)
         {
             var createOffer = CreateOfferModelFactory.Create(myAssets,
                 partnerAssets);
@@ -111,10 +114,9 @@ namespace skadisteam.trade
                 createOffer, partnerCommunityId, _skadiLoginResponse.SessionId,
                 tradeOfferCreateParameter, tradeOfferMessage, tradeOfferToken);
             var responseBody = response.Content.ReadAsStringAsync().Result;
-            // ReSharper disable once UnusedVariable
-            // TODO: Check response for errors.
             var sendOfferResponse =
                 JsonConvert.DeserializeObject<SendOfferResponse>(responseBody);
+            // TODO: Parse this
         }
 
         public List<IMobileConfirmation> GetConfirmations()
@@ -129,10 +131,13 @@ namespace skadisteam.trade
                     _skadiLoginResponse.SteamCommunityId);
             var confirmationDataContent =
                 confirmationDataResponse.Content.ReadAsStringAsync().Result;
-            return MobileConfirmationFactory.CreateConfirmationList(confirmationDataContent);
+            return
+                MobileConfirmationFactory.CreateConfirmationList(
+                    confirmationDataContent);
         }
 
-        private void AcceptMobileConfirmation(IMobileConfirmation mobileConfirmation)
+        private void AcceptMobileConfirmation(
+            IMobileConfirmation mobileConfirmation)
         {
             var referer = MobileConfirmationFactory.GenerateConfirmationUrl(
                 _deviceId, _identitySecret, _skadiLoginResponse.SteamCommunityId);
@@ -145,22 +150,24 @@ namespace skadisteam.trade
                 MobileConfirmation = mobileConfirmation,
                 SteamCommunityId = _skadiLoginResponse.SteamCommunityId
             };
-            var urlToConfirm = UrlPathFactory.ConfirmationUrl(confirmationUrlParameter);
-            HttpClientHandler handler =
+            var urlToConfirm =
+                UrlPathFactory.ConfirmationUrl(confirmationUrlParameter);
+            var handler =
             HttpClientHandlerFactory.CreateWithCookieContainer(
                 _skadiLoginResponse.SkadiLoginCookies);
             RequestFactory.ApproveConfirmations(handler, urlToConfirm, referer,
                 _skadiLoginResponse.SteamCommunityId);
         }
 
-        public void ConfirmAllTrades(List<IMobileConfirmation> mobileConfirmations)
+        public void ConfirmAllTrades(
+            List<IMobileConfirmation> mobileConfirmations)
         {
             foreach (var mobileConfirmation in mobileConfirmations)
             {
                 AcceptMobileConfirmation(mobileConfirmation);
             }
         }
-        
+
         public void ConfirmAllTrades(string deviceId, string identitySecret)
         {
             var mobileConfirmations = GetConfirmations();
