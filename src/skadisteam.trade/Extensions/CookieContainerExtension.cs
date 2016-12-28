@@ -9,10 +9,9 @@ namespace skadisteam.trade.Extensions
         internal static CookieContainer AddWebTradeEligilityCookie(
             this CookieContainer cookieContainer)
         {
-            return
-                cookieContainer.AddCookie(Uris.SteamCommunityBase,
-                    "webTradeEligibility",
-                    "%7B%22allowed%22%3A1%2C%22allowed_at_time%22%3A0%2C%22steamguard_required_days%22%3A15%2C%22sales_this_year%22%3A1182%2C%22max_sales_per_year%22%3A-1%2C%22forms_requested%22%3A0%2C%22new_device_cooldown_days%22%3A7%7D");
+            return cookieContainer.AddCookie(Uris.SteamCommunityBase,
+                CookieNames.WebTradeEligibility,
+                CookieValues.WebTradeEligibility);
         }
 
         internal static CookieContainer EnableMobileCookieContainer(
@@ -27,38 +26,39 @@ namespace skadisteam.trade.Extensions
         internal static CookieContainer DisableMobileCookieContainer(
             this CookieContainer cookieContainer)
         {
-            return cookieContainer.DeleteMobileCookiesByName("steamid")
-                .DeleteMobileCookiesByName("dob")
-                .DeleteMobileCookiesByName("mobileClientVersion")
-                .DeleteMobileCookiesByName("mobileClient");
+            return cookieContainer.DeleteMobileCookiesByName(CookieNames.SteamId)
+                .DeleteMobileCookiesByName(CookieNames.Dob)
+                .DeleteMobileCookiesByName(CookieNames.MobileClientVersion)
+                .DeleteMobileCookiesByName(CookieNames.MobileClient);
         }
 
         private static CookieContainer AddAndroidMobileClient(
             this CookieContainer cookieContainer)
         {
             return cookieContainer.AddCookie(Uris.SteamCommunityBaseSecured,
-                "mobileClient", "android");
+                CookieNames.MobileClient, CookieValues.MobileClientAndroid);
         }
 
         private static CookieContainer AddMobileClientVersion(
             this CookieContainer cookieContainer)
         {
             return cookieContainer.AddCookie(Uris.SteamCommunityBaseSecured,
-                "mobileClientVersion", "0 (2.1.3)");
+                CookieNames.MobileClientVersion,
+                CookieValues.MobileClientVersion);
         }
 
         private static CookieContainer AddDobCookie(
             this CookieContainer cookieContainer)
         {
             return cookieContainer.AddCookie(Uris.SteamCommunityBaseSecured,
-                "dob", "");
+                CookieNames.Dob, string.Empty);
         }
 
         private static CookieContainer AddSteamIdCookie(
             this CookieContainer cookieContainer, long steamCommunityId)
         {
             return cookieContainer.AddCookie(Uris.SteamCommunityBaseSecured,
-                "steamid", steamCommunityId);
+                CookieNames.SteamId, steamCommunityId);
         }
 
         private static CookieContainer AddCookie(
