@@ -8,7 +8,8 @@ namespace skadisteam.trade.Converter
 {
     internal static class TradeStatusConverter
     {
-        internal static TradeStatus Convert(CurrentTradeStatus currentTradeStatus)
+        internal static TradeStatus Convert(
+            CurrentTradeStatus currentTradeStatus)
         {
             var tradeStatus = new TradeStatus
             {

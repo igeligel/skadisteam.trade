@@ -5,7 +5,8 @@ namespace skadisteam.trade.Converter
 {
     internal static class AppContextDataConverter
     {
-        internal static List<AppData> FromJsonModel(Dictionary<string, Models.Json.AppData> jsonAppData)
+        internal static List<AppData> FromJsonModel(
+            Dictionary<string, Models.Json.AppData> jsonAppData)
         {
             var result = new List<AppData>();
             foreach (var data in jsonAppData)
