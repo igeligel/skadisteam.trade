@@ -87,6 +87,7 @@ namespace skadisteam.trade.Factories
                         mobileConfirmation.ToTradeConfirmation(domElement);
                     return tradeConfirmation;
                 case ConfirmationType.CreateListing:
+                    // TODO
                     var marketListingConfirmation =
                         new MarketListingConfirmation();
                     return marketListingConfirmation;
