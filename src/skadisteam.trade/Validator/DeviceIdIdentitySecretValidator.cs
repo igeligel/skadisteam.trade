@@ -1,4 +1,4 @@
-﻿using skadisteam.trade.Constants;
+using skadisteam.trade.Constants;
 using System;
 
 namespace skadisteam.trade.Validator
@@ -7,7 +7,7 @@ namespace skadisteam.trade.Validator
     {
         internal static void Validate(string deviceId, string identitySecret)
         {
-            if (string.IsNullOrEmpty(deviceId) || string.IsNullOrEmpty(identitySecret))
+            if (string.IsNullOrEmpty(deviceId) && string.IsNullOrEmpty(identitySecret))
             {
                 throw new ArgumentException(ExceptionDescriptions.DeviceIdAndIdentitySecretNotSet);
             }
