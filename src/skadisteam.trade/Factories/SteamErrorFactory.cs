@@ -1,4 +1,3 @@
-using skadisteam.trade.Constants;
 using skadisteam.trade.Models;
 using skadisteam.trade.Models.Json.AcceptingOffers;
 
@@ -15,13 +14,8 @@ namespace skadisteam.trade.Factories
         {
             var errEnum = SteamError.Undefined;
             if (steamErrorText == null) return errEnum;
-            var errorCode =
-                int.Parse(
-                    steamErrorText.Replace(
-                            RegexPatterns.SteamErrorFirstPart,
-                            string.Empty)
-                        .Replace(RegexPatterns.ClosedBracket, string.Empty));
-            errEnum = (SteamError)errorCode;
+            var number = int.Parse(steamErrorText.Split('(', ')')[1]);
+            errEnum = (SteamError)number;
             return errEnum;
         }
     }
