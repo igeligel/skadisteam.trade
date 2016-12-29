@@ -241,7 +241,7 @@ namespace skadisteam.trade.Factories
                     HttpHeaderKeys.UserAgent, HttpHeaderValues.ChromeUserAgent);
                 client.DefaultRequestHeaders.TryAddWithoutValidation(
                     HttpHeaderKeys.Referer,
-                    UrlFactory.TradeOfferExecutrion(partnerCommunityId,
+                    UrlFactory.TradeOfferExecution(partnerCommunityId,
                         tradeOfferToken));
                 client.DefaultRequestHeaders.TryAddWithoutValidation(
                     HttpHeaderKeys.Origin, Urls.SteamCommunityBaseSecured);
