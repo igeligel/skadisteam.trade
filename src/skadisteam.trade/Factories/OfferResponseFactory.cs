@@ -10,33 +10,37 @@ namespace skadisteam.trade.Factories
     {
         internal static IAcceptOfferResponse Create(string responseBody)
         {
-            var mobileConfirmationResponse =
+            if (responseBody.Contains("needs_mobile_confirmation"))
+            {
+                var mobileConfirmationResponse =
                 (MobileConfirmationResponse)
                 JsonToAcceptOfferResponse
                     .ParseAcceptOffer<MobileConfirmationResponse>(responseBody);
-            if (mobileConfirmationResponse != null)
-                return mobileConfirmationResponse;
-
-            var tradeReceiptResponse =
-                (TradeReceiptResponse)
-                JsonToAcceptOfferResponse.ParseAcceptOffer<TradeReceiptResponse>
-                    (responseBody);
-            if (tradeReceiptResponse != null)
-                return tradeReceiptResponse;
-
-            var steamErrorResponse =
+                if (mobileConfirmationResponse != null)
+                    return mobileConfirmationResponse;
+            }
+            if (responseBody.Contains("strError"))
+            {
+                var steamErrorResponse =
                 (SteamErrorResponse)
                 JsonToAcceptOfferResponse.ParseAcceptOffer<SteamErrorResponse>(
                     responseBody);
 
-            var acceptOfferErrorResponse = new AcceptOfferErrorResponse
-            {
-                SteamError = SteamError.Undefined
-            };
-            if (steamErrorResponse == null) return acceptOfferErrorResponse;
-            acceptOfferErrorResponse.SteamError =
-                SteamErrorFactory.ParseError(steamErrorResponse);
-            return acceptOfferErrorResponse;
+                var acceptOfferErrorResponse = new AcceptOfferErrorResponse
+                {
+                    SteamError = SteamError.Undefined
+                };
+                if (steamErrorResponse == null) return acceptOfferErrorResponse;
+                acceptOfferErrorResponse.SteamError =
+                    SteamErrorFactory.ParseError(steamErrorResponse);
+                return acceptOfferErrorResponse;
+            }
+            if (!responseBody.Contains("tradeid")) return null;
+            var tradeReceiptResponse =
+                (TradeReceiptResponse)
+                JsonToAcceptOfferResponse.ParseAcceptOffer<TradeReceiptResponse>
+                    (responseBody);
+            return tradeReceiptResponse;
         }
     }
 }
