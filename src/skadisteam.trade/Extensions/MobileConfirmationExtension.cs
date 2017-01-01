@@ -36,7 +36,32 @@ namespace skadisteam.trade.Extensions
 
         internal static MarketListingConfirmation ToMarketListingConfirmation(this MobileConfirmation mobileConfirmation, IElement domElement)
         {
-            return null;
+            var marketListingConfirmation = new MarketListingConfirmation
+            {
+                Id = mobileConfirmation.Id,
+                Key = mobileConfirmation.Key,
+                Creator = mobileConfirmation.Creator,
+                Time = mobileConfirmation.Time
+            };
+            marketListingConfirmation.Item = domElement.QuerySelector(
+                    ".mobileconf_list_entry_description")
+                .Children[0].InnerHtml.Replace("Sell - ", "");
+            var priceElement =
+                domElement.QuerySelector(".mobileconf_list_entry_description")
+                    .Children[1].InnerHtml;
+            var openedParentheses = Regex.Escape(" (");
+            var currency = Regex.Split(priceElement, openedParentheses)[0];
+            marketListingConfirmation.Currency =
+                currency[currency.Length - 1].ToString();
+            var normalPrice =
+                currency.Substring(1, currency.Length - 2).Replace(",", ".");
+            marketListingConfirmation.SellPrice = decimal.Parse(normalPrice);
+            var taxPrice =
+                Regex.Split(priceElement, openedParentheses)[1];
+            taxPrice = Regex.Split(taxPrice, "\\S\\)")[0].Replace(",", ".");
+            marketListingConfirmation.SellPriceAfterTaxes =
+                decimal.Parse(taxPrice);
+            return marketListingConfirmation;
         }
     }
 }
