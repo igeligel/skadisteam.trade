@@ -89,16 +89,17 @@ namespace skadisteam.trade.Factories
                 case ConfirmationType.CreateListing:
                     // TODO
                     var marketListingConfirmation =
-                        new MarketListingConfirmation();
+                        mobileConfirmation.ToMarketListingConfirmation(
+                            domElement);
                     return marketListingConfirmation;
             }
             return mobileConfirmation;
         }
 
-        internal static string GenerateConfirmationUrl(string devideId, string identitySecret, long steamCommunityId)
+        internal static string GenerateConfirmationUrl(string deviceId, string identitySecret, long steamCommunityId)
         {
             const string endpoint = "/mobileconf/conf?";
-            var queryString = GenerateConfirmationQueryParams(ConfirmationTag.Confirm, devideId, identitySecret, steamCommunityId);
+            var queryString = GenerateConfirmationQueryParams(ConfirmationTag.Confirm, deviceId, identitySecret, steamCommunityId);
             return endpoint + queryString;
         }
 
