@@ -1,0 +1,17 @@
+version: 0.1.0-{build}-beta
+image:
+  - Visual Studio 2017
+pull_requests:  
+  do_not_increment_build_number: true
+branches:
+  only:
+  - master
+nuget:  
+  disable_publish_on_pr: true
+skip_tags: true
+before_build:
+- ps: >-
+    dotnet --version
+build_script:  
+- ps: .\Build.ps1
+test: off

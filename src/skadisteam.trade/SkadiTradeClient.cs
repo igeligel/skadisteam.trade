@@ -1,6 +1,5 @@
 using AngleSharp.Parser.Html;
 using Newtonsoft.Json;
-using skadisteam.login.Models;
 using skadisteam.trade.Constants;
 using skadisteam.trade.Extensions;
 using skadisteam.trade.Factories;
@@ -15,6 +14,7 @@ using skadisteam.trade.Models.Confirmation;
 using skadisteam.trade.Models;
 using System.Collections.Generic;
 using System.Linq;
+using skadisteam.shared.Models;
 
 namespace skadisteam.trade
 {

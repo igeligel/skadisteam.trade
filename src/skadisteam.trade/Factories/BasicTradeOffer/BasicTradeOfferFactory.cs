@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using AngleSharp.Dom;
@@ -52,14 +53,19 @@ namespace skadisteam.trade.Factories.BasicTradeOffer
 
         private static DateTime GetExpireDate(IParentNode angleSharpElement)
         {
-            var test = angleSharpElement.LastElementChild.TextContent;
-            if (!test.Contains(RegexPatterns.OfferExpireson)) return DateTime.MinValue;
-            var bla = Regex.Split(test, RegexPatterns.OfferExpireson)[1];
-            bla = bla.RemoveNewLines().RemoveTabs();
-            var expireTime = DateTime.ParseExact(bla,
-                DateTimeFormats.TradeOfferSimpleDate,
-                System.Globalization.CultureInfo.InvariantCulture);
-            return expireTime;
+            var htmlElementTextContent = angleSharpElement.LastElementChild.TextContent;
+            if (!htmlElementTextContent.Contains(RegexPatterns.OfferExpireson)) return DateTime.MinValue;
+            var splittedText = Regex.Split(htmlElementTextContent, RegexPatterns.OfferExpireson)[1];
+            splittedText = splittedText.RemoveNewLines().RemoveTabs();
+            if (DateTime.TryParseExact(splittedText, DateTimeFormats.TradeOfferSimpleDate, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out DateTime expireTime))
+            {
+                return expireTime;
+            }
+            if (DateTime.TryParseExact(splittedText, DateTimeFormats.TradeOfferSimpleDateShort, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out expireTime))
+            {
+                return expireTime;
+            }
+            return DateTime.MinValue;
         }
     }
 }
