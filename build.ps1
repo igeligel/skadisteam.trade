@@ -20,7 +20,7 @@ function Exec
     }
 }
 
-cd .\src\skadisteam.login\ 
+cd .\src\skadisteam.trade\ 
 
 exec { & dotnet restore skadisteam.trade.csproj }
 
