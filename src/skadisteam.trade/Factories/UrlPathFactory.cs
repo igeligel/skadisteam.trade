@@ -9,17 +9,17 @@ namespace skadisteam.trade.Factories
             return "/profiles/" + steamCommunityId + "/tradeoffers/";
         }
 
-        internal static string TradeOffer(int id)
+        internal static string TradeOffer(long id)
         {
             return "/tradeoffer/" + id + "/";
         }
 
-        internal static string DeclineOffer(int id)
+        internal static string DeclineOffer(long id)
         {
             return "/tradeoffer/" + id + "/decline";
         }
 
-        internal static string AcceptOffer(int id)
+        internal static string AcceptOffer(long id)
         {
             return "/tradeoffer/" + id + "/accept";
         }

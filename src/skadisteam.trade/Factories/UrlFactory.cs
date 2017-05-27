@@ -16,7 +16,7 @@ namespace skadisteam.trade.Factories
                    "/tradeoffers/";
         }
 
-        internal static string TradeOffer(int id)
+        internal static string TradeOffer(long id)
         {
             return Urls.SteamCommunityBaseSecured + "/tradeoffer/" + id + "/";
         }

@@ -7,7 +7,7 @@ namespace skadisteam.trade.Models.Confirmation
     {
         public long Id { get; set; }
         public ulong Key { get; set; }
-        public int Creator { get; set; }
+        public long Creator { get; set; }
         public DateTime Time { get; set; }
     }
 }

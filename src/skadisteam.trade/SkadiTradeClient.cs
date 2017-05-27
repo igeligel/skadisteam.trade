@@ -63,7 +63,7 @@ namespace skadisteam.trade
             return tradeOffers.Select(BasicTradeOfferFactory.Create).ToList();
         }
 
-        public SkadiTradeOffer LoadTradeOffer(int id)
+        public SkadiTradeOffer LoadTradeOffer(long id)
         {
             var handler =
                 HttpClientHandlerFactory.CreateWithCookieContainer(

@@ -9,7 +9,7 @@ namespace skadisteam.trade.Models.BasicTradeOffer
 
         public DateTime ExpiringDate { get; set; }
 
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         public BasicTradeOfferPartner Partner { get; set; }
 

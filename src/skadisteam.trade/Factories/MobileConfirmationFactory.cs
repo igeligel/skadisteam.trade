@@ -59,7 +59,7 @@ namespace skadisteam.trade.Factories
                     ulong.Parse(domElement.Attributes.FirstOrDefault(
                         e => e.Name == "data-key").Value);
             var creator =
-                    int.Parse(domElement.Attributes.FirstOrDefault(
+                    long.Parse(domElement.Attributes.FirstOrDefault(
                         e => e.Name == "data-creator").Value);
             var type =
                 (ConfirmationType)

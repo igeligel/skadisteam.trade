@@ -34,10 +34,10 @@ namespace skadisteam.trade.Factories.BasicTradeOffer
             return basicTradeOffer;
         }
 
-        private static int GetTradeOfferId(IElement angleSharpElement)
+        private static long GetTradeOfferId(IElement angleSharpElement)
         {
             return
-                int.Parse(
+                long.Parse(
                     angleSharpElement.Id.Replace(
                         RegexPatterns.TradeOfferIdUnderscore, string.Empty));
         }

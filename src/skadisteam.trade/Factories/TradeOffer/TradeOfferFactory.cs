@@ -18,7 +18,7 @@ namespace skadisteam.trade.Factories.TradeOffer
 {
     internal static class TradeOfferFactory
     {
-        internal static SkadiTradeOffer Create(string content, int id)
+        internal static SkadiTradeOffer Create(string content, long id)
         {
             if (content.Contains("This trade offer is no longer valid."))
             {
@@ -140,6 +140,11 @@ namespace skadisteam.trade.Factories.TradeOffer
                document.QuerySelectorAll(".trade_partner_info_text")
                    .FirstOrDefault()
                    .InnerHtml.RemoveTabs().RemoveNewLines();
+
+            if (friendsSinceText == "You are not friends with this user")
+            {
+                return DateTime.MinValue;
+            }
 
             // Datetime
             var provider = CultureInfo.InvariantCulture;

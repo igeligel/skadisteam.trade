@@ -6,7 +6,7 @@ namespace skadisteam.trade.Interfaces
     {
         long Id { get; set; }
         ulong Key { get; set; }
-        int Creator { get; set; }
+        long Creator { get; set; }
         DateTime Time { get; set; }
     }
 }
